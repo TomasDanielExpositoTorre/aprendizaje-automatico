@@ -1,2 +1,5 @@
 *.txt
 __pycache__
+.ipynb_checkpoints
+venv
+.jupyter_ystore.db
