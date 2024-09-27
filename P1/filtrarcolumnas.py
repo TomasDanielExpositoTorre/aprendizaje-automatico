@@ -14,7 +14,7 @@ freqs = data.frequencies()
 freqs2 = data.frequencies()
 
 # Duplicamos freqs en freqs2 para poder borrar las columnas durante la iteración
-# sino da error "RuntimeError: dictionary changed size during iteration"
+# si no da error "RuntimeError: dictionary changed size during iteration"
 
 for key in freqs2:
 
