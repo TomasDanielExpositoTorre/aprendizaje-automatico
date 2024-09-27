@@ -8,7 +8,7 @@ import pandas as pd
 LABELS=0
 freqs = data.frequencies()
 
-freqs2 = data.frequencies()
+freqs2 == freqs
 
 # Duplicamos freqs en freqs2 para poder eliminar columnas mientras estamos dentro del bucle,
 # evitando el error "RuntimeError: dictionary changed size during iteration"
