@@ -1,9 +1,9 @@
 # Draw histograms Alt.
 
 #  Modificaciones: 
-#  Condicionar la distribución a un mínimo de dos valores (máx 32) para seleccionar solo infogramas que aporten información.
+#  Condicionar la distribución a un mínimo de dos valores por columna (máx 32) para seleccionar solo infogramas que aporten información.
 #  Añadir fig = plt.figure(figsize =(20, 7)) para ampliar la anchura de los infogramas y permitir que se vean con claridad los nombres de todas las columnas.
-#  Si la columna es un campo categórico (tiene mas de 32 valores diferentes) solo se indica el número de valores distintos
+#  Si la columna tiene mas de 32 valores diferentes) solo se indica el número de valores distintos
 
 for key in freqs:
     if 1 < len(freqs[key][LABELS]) <= 32:
