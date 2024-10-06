@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Read CSV, ignore empty columns
 
 df = pd.read_csv(
-    "datos_practica.txt",
+    "P1/datos_practica.txt",
     sep="|", header=None, skipinitialspace=True
 )
 
@@ -64,11 +64,11 @@ for filas in df.ind:
     fraude = fraude.astype(bool)
     fraude = fraude.tolist()
     
-        if  fraude is True:
+    if  fraude is True:
         color = "red"
         simbolo = "+"
 
-        if  fraude is False:
+    if  fraude is False:
         color = "green"   
         simbolo = "o"
 
