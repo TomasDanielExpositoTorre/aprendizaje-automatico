@@ -18,21 +18,26 @@ df.columns = [
     "FECHA ALTA CTA CARGO", "PAIS IP", "LATITUD", "LONGITUD", "BROWSER", "BROWSER VERSION", "OS",
     "OS VERSION", "PROFESION CLIENTE", "SECTOR CLIENTE", "SEGMENTO CLIENTE", "INDICADOR FRAUDE"
 ]
-
-# Convertimos PERFIL CLIENTE en tabla categorica de tipo int 
+# Convertimos PERFIL CLIENTE en tabla categorica de tipo int y guardamos importes
 
 percli = pd.Categorical(df["PERFIL CLIENTE"]).codes
-importe = np.array(df["IMPORTE"], dtype=float)
+importe = np.array(df["IMPORTE"],dtype=int)
+
+# Filtramos Outliers (importes de más de 1 millon) para evitar distorsión ene el gráfico
+
+for fila in range(0,len(importe)):
+    if importe[fila] > 1000000:
+       importe[fila] = 0
 
 
 # Creamos nuevas tablas para separar y almacenar las
 # transacciones fraudulentas (perclifr / importefr) y las legítimas (percliok / importeok)
 
 perclifr = percli[df['INDICADOR FRAUDE'] == 1]
-importefr = (importe[df['INDICADOR FRAUDE'] == 1])
+importefr = importe[df['INDICADOR FRAUDE'] == 1] 
 
-percliok = percli[df['INDICADOR FRAUDE'] == 0]
-importeok = (importe[df['INDICADOR FRAUDE'] == 0])
+percliok = percli[df['INDICADOR FRAUDE'] == 0] 
+importeok = importe [df['INDICADOR FRAUDE'] == 0]
 
 
 # Dibujamos el gráfico
@@ -44,9 +49,7 @@ plt.xlabel("PERFIL DE CLIENTE", labelpad=10,fontsize=12)
 plt.ylabel("IMPORTE en miles de Euros", labelpad=10,fontsize=12)
 
 plt.xticks([-1,0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24],rotation=45, labels = (['DESC','HG02','HG03','HG04','HG05','HG06','HG07','HG09','HG14','HG15','HG18','HN01','HN02','HN04','HN05','HN06','HN07','HN09','HN14','HN15','HN16','NG01','NG02','NG03']))
-plt.yticks([-1,0,10000,20000,30000,400000,50000], labels=(['0','10k','20k','30k','40k','50k','60k o más']))
-
-
+plt.yticks([-1,0,50000,100000,2000000,300000,400000], labels=([' ','50k','100k','200k','300k','400k','500k o más']))
 
 plt.scatter(percliok,importeok, c= "green", marker = "+", s=200)
 plt.scatter(perclifr,importefr, c= "red", marker = "x", s=200)
