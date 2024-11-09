@@ -76,21 +76,20 @@ class KMeans:
         algoritmo vendrá dado por self.num_iters. Los centros de los clusters se
         almacenarán en la lista self.centers.
         """
-        # Elección aleatoria de los centroides entre puntos del dataset
+        # Elección aleatoria de los centroides entre puntos (distintos) del dataset
         # Garantiza que a cada centroide se asocie al menos un punto
-        self.centers = x[np.random.choice(x.shape[0], size=self.num_clusters)]
+        self.centers = x[np.random.choice(x.shape[0], size=self.num_clusters, replace=False)]
         
         for _ in range(self.num_iters):
             # Matriz de distancias de todos los puntos
             distances = cdist(x, self.centers, metric='euclidean')
             
-            # Asigna cada punto a un centroide (minimo de distancias en cada fila)
+            # Asignación punto->centroide (minimo de distancias en cada fila)
             tags = np.argmin(distances, axis=1)
-
-            # Calcula los nuevos centroides
+            
+            # Nuevos centroides
             for i in range(self.num_clusters):
                 self.centers[i] = np.mean(x[np.where(tags == i)[0]], axis=0)
-
 
     def predict(self, x):
         """
@@ -102,12 +101,21 @@ class KMeans:
         """
         if len(self.centers) != self.num_clusters:
             raise ValueError(f'Fit method was not called!')
+            
         distances = cdist(x, self.centers, metric='euclidean')
         return np.argmin(distances, axis=1)
 
     def get_centers(self):
         return self.centers
 
+
+    def get_inertias(self,x):
+        """
+        Método adicional para calcular el SSE de los clusters en tests
+        """
+        tags = self.predict(x)
+        squared_distances = np.sum(np.square(x - self.centers[tags]), axis=1)
+        return np.sum(squared_distances)
 
 #---------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------
@@ -131,8 +139,54 @@ class GMM:
         en las listas self.centers, self.covariances y self.weights,
         respectivamente.
         """
-        pass
+        
+        """
+        1. Inicialización
+        """
+        # Elección aleatoria de medias entre puntos del dataset. 
+        self.centers = x[np.random.choice(x.shape[0], size=self.num_components, replace=False)]
+        
+        # Inicialización aleatoria de las covarianzas "full".
+        # La matriz debe ser simétrica para utilizar mvn
+        self.covariances = np.zeros((self.num_components, x.shape[1], x.shape[1]))
+        for k in range(self.num_components):
+            self.covariances[k] = np.eye(x.shape[1])
+            
+        # Inicialización equitativa de prioris.
+        self.weights = np.ones(self.num_components) / self.num_components
+        
+        for _ in range(self.num_iters):
+            """
+            2. E-Step 
+            """
+            # Asignamos una posteriori a cada punto x_i por cada gausiana
+            posterioris = np.zeros((x.shape[0], self.num_components))
+        
+            # Por cada distribución y punto, calculamos las pdf p(x_i|k,θold)
+            for k, (mean, cov) in enumerate(zip(self.centers, self.covariances)):
+                distribution = mvn(mean=mean, cov=cov)
+                posterioris[:, k] = distribution.pdf(x)
+            
+            # Multiplicamos por prioris y dividimos por p(x_i|θold) para obtener la posteriori
+            posterioris *= self.weights
+            posterioris /= np.sum(posterioris, axis=1, keepdims=True)
+            """
+            3. M-Step
+            """
+            # Nuevas prioris
+            self.weights = np.mean(posterioris, axis=0)
+            
+            # Nuevas medias (equivalente al sumatorio de las transparencias)
+            # 4x400 @ 400x2 = 4x2
+            self.centers = (posterioris.T @ x)/np.sum(posterioris, axis=0)[:, np.newaxis]
+            
+            # Nuevas matrices de covarianza (equivalente al sumatorio de las transparencias)
+            for k in range(self.num_components):
+                d = x - self.centers[k]
+                # 1x400 * 2x400 @ 400x2 = 2x2
+                self.covariances[k] = (posterioris[:, k] * d.T) @ d / np.sum(posterioris[:, k])
 
+                
     def predict(self, x):
         """
         Recibe un array de numpy de dimensiones (n, d), donde n es el número
@@ -142,5 +196,16 @@ class GMM:
         método predict no se puede invocar sobre un objeto si no se ha hecho fit
         previamente.
         """
-        pass
+        if len(self.centers) != self.num_components:
+            raise ValueError(f'Fit method was not called!')
+        
+        posterioris = np.zeros((x.shape[0], self.num_components))
+        for k, (mean, cov) in enumerate(zip(self.centers, self.covariances)):
+                distribution = mvn(mean=mean, cov=cov)
+                posterioris[:, k] = distribution.pdf(x)
+        posterioris *= self.weights
+        posterioris /= np.sum(posterioris, axis=1, keepdims=True)
+        
+        return posterioris
 
+        
