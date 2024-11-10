@@ -179,7 +179,7 @@ class GMM:
             # Nuevas medias (equivalente al sumatorio de las transparencias)
             # 4x400 @ 400x2 = 4x2
             self.centers = (posterioris.T @ x)/np.sum(posterioris, axis=0)[:, np.newaxis]
-            
+
             # Nuevas matrices de covarianza (equivalente al sumatorio de las transparencias)
             for k in range(self.num_components):
                 d = x - self.centers[k]
