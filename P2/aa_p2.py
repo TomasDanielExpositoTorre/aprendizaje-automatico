@@ -164,12 +164,25 @@ class GMM:
         
             # Por cada distribución y punto, calculamos las pdf p(x_i|k,θold)
             for k, (mean, cov) in enumerate(zip(self.centers, self.covariances)):
-                distribution = mvn(mean=mean, cov=cov)
+                try:
+                    distribution = mvn(mean=mean, cov=cov)
+                except Exception as e:
+                    print(repr(e))
+                    print(f"found at iteration {_} in dim {x.shape[1]}")
+                    print("Covariance matrix")
+                    print(cov)
+                    raise ValueError("Fallo encontrado!")
+                    
                 posterioris[:, k] = distribution.pdf(x)
             
             # Multiplicamos por prioris y dividimos por p(x_i|θold) para obtener la posteriori
             posterioris *= self.weights
-            posterioris /= np.sum(posterioris, axis=1, keepdims=True)
+
+            # Caso donde el pdf determina que un punto no pertenece a ninguna distribución
+            tmp = np.sum(posterioris, axis=1, keepdims=True)
+            tmp[tmp==0] = 1e-35
+            
+            posterioris /= tmp
             """
             3. M-Step
             """
@@ -179,13 +192,14 @@ class GMM:
             # Nuevas medias (equivalente al sumatorio de las transparencias)
             # 4x400 @ 400x2 = 4x2
             self.centers = (posterioris.T @ x)/np.sum(posterioris, axis=0)[:, np.newaxis]
-
+                
             # Nuevas matrices de covarianza (equivalente al sumatorio de las transparencias)
             for k in range(self.num_components):
                 d = x - self.centers[k]
                 # 1x400 * 2x400 @ 400x2 = 2x2
                 self.covariances[k] = (posterioris[:, k] * d.T) @ d / np.sum(posterioris[:, k])
 
+    
                 
     def predict(self, x):
         """
