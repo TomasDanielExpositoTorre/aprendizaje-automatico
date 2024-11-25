@@ -164,15 +164,7 @@ class GMM:
         
             # Por cada distribución y punto, calculamos las pdf p(x_i|k,θold)
             for k, (mean, cov) in enumerate(zip(self.centers, self.covariances)):
-                try:
-                    distribution = mvn(mean=mean, cov=cov)
-                except Exception as e:
-                    print(repr(e))
-                    print(f"found at iteration {_} in dim {x.shape[1]}")
-                    print("Covariance matrix")
-                    print(cov)
-                    raise ValueError("Fallo encontrado!")
-                    
+                distribution = mvn(mean=mean, cov=cov)
                 posterioris[:, k] = distribution.pdf(x)
             
             # Multiplicamos por prioris y dividimos por p(x_i|θold) para obtener la posteriori
