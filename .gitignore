@@ -1,8 +1,16 @@
+# Ignore data
 *.txt
 *.csv
+*.keras
+*.zip
+*.joblib
+gender
+
+# Ignore python content
 __pycache__
 .ipynb_checkpoints
 venv
 .jupyter_ystore.db
+
 original*
 P2/ejemplos
